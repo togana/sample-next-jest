@@ -1,23 +1,59 @@
-# Next.js + Jest
+## next/jest が next.js 12.0.4 から公開されたので試してみる
 
-This example shows how to configure Jest to work with Next.js.
+"next/jest" is currently experimental. https://nextjs.org/docs/messages/experimental-jest-transformer
 
-This includes Next.js' built-in support for Global CSS, CSS Modules, and TypeScript!
+### 使い方
+```
+const nextJest = require('next/jest');
+const createJestConfig = nextJest();
 
-## How to Use
-
-Quickly get started using [Create Next App](https://github.com/vercel/next.js/tree/canary/packages/create-next-app#readme)!
-
-In your terminal, run the following command:
-
-```bash
-npx create-next-app --example with-jest with-jest-app
-# or
-yarn create next-app --example with-jest with-jest-app
+createJestConfig()().then((value) => {
+  console.log(value);
+});
 ```
 
-## Run Jest Tests
+### 結果
+```
+{
+  moduleNameMapper: {
+    '^.+\\.module\\.(css|sass|scss)$': '{ローカル環境}/node_modules/next/dist/build/jest/object-proxy.js',
+    '^.+\\.(css|sass|scss)$': '{ローカル環境}/node_modules/next/dist/build/jest/__mocks__/styleMock.js',
+    '^.+\\.(jpg|jpeg|png|gif|webp|avif|svg)$': '{ローカル環境}/node_modules/next/dist/build/jest/__mocks__/fileMock.js'
+  },
+  testPathIgnorePatterns: [ '/node_modules/', '/.next/' ],
+  transform: {
+    '^.+\\.(js|jsx|ts|tsx)$': [
+      '{ローカル環境}/node_modules/next/dist/build/swc/jest-transformer.js',
+     {
+        nextConfig: undefined,
+        jsConfig: undefined,
+        resolvedBaseUrl: undefined,
+        isEsmProject: false
+      }
+    ]
+  },
+  transformIgnorePatterns: [ '/node_modules/', '^.+\\.module\\.(css|sass|scss)$' ]
+}
+```
 
-```bash
-npm test
+### 最低限の設定はされているみたいなのでカスタムしたいないようを追加する
+
+```
+const nextJest = require('next/jest');
+const createJestConfig = nextJest();
+
+const customJestConfig = {
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  collectCoverageFrom: [
+    '**/*.{js,jsx,ts,tsx}',
+    '!**/*.d.ts',
+    '!**/node_modules/**',
+  ],
+  moduleNameMapper: {
+    // Handle module aliases
+    '^@/components/(.*)$': '<rootDir>/components/$1',
+  },
+};
+
+module.exports = createJestConfig(customJestConfig)
 ```
